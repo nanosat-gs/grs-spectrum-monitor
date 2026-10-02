@@ -142,16 +142,25 @@ function ensureCard(radio) {
   return card;
 }
 
-// Escala vertical que acompanha o sinal sem pular a cada quadro.
+// Escala vertical como um medidor de pico: ABRE NA HORA quando o sinal passa
+// dos limites e FECHA DEVAGAR depois. O sinal é em rajadas: uma média que
+// perseguisse o pico encolheria no silêncio entre elas e cortaria o topo da
+// rajada seguinte por vários quadros — medido: pico cortado em mais da
+// metade das amostras do VHF.
+const SCALE_RELEASE = 0.03;   // por quadro: ~5 s para fechar, a 5 quadros/s
+const SCALE_HEADROOM_DB = 4;
+const SCALE_MIN_SPAN_DB = 25;
+
 function scaleFor(card, values) {
   const sorted = [...values].sort((a, b) => a - b);
   const floor = sorted[Math.floor(sorted.length * 0.5)];
   const top = sorted[sorted.length - 1];
-  const target = { low: floor - 6, high: Math.max(top + 4, floor + 25) };
-  if (!card.scale) card.scale = target;
-  card.scale.low += (target.low - card.scale.low) * 0.2;
-  card.scale.high += (target.high - card.scale.high) * 0.2;
-  return card.scale;
+  const target = { low: floor - 6, high: Math.max(top + SCALE_HEADROOM_DB, floor + SCALE_MIN_SPAN_DB) };
+  if (!card.scale) { card.scale = target; return card.scale; }
+  const s = card.scale;
+  s.high = target.high > s.high ? target.high : s.high + (target.high - s.high) * SCALE_RELEASE;
+  s.low = target.low < s.low ? target.low : s.low + (target.low - s.low) * SCALE_RELEASE;
+  return s;
 }
 
 function drawLine(canvas, values, scale, color) {
@@ -195,6 +204,7 @@ function drawZoom(card, s, radioState) {
   }
 
   const scale = scaleFor(card, s.zoom);
+  card.lastZoom = s.zoom;
   drawLine(canvas, s.zoom, scale, "#00d9ff");
 
   // Centro da sintonia.
@@ -217,7 +227,8 @@ function drawZoom(card, s, radioState) {
   ctx.fillText(tune ? `centro: ${mhz(tune)}` : "centro: sintonia do receptor (fora de passagem)",
                6 * ratio, 14 * ratio);
   ctx.textAlign = "right";
-  ctx.fillText(`${scale.high.toFixed(0)} dB`, W - 6 * ratio, 14 * ratio);
+  // Math.round, e não toFixed: toFixed(0) de -0,3 escreve "-0".
+  ctx.fillText(`topo ${Math.round(scale.high)} dB`, W - 6 * ratio, 14 * ratio);
   ctx.textAlign = "left";
 }
 
