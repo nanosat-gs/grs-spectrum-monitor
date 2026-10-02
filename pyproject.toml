@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grs-spectrum-monitor"
+version = "0.1.0"
+description = "Spectrum Monitor da estação terrestre SpaceLab: o espectro de cada rádio, ao vivo"
+readme = "README.md"
+requires-python = ">=3.11"
+
+# Uma dependência: o resto é biblioteca padrão (http.server, array).
+dependencies = [
+    "pyzmq>=25,<26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# A página é um .html servido de dentro do pacote.
+[tool.setuptools.package-data]
+grs_spectrum_monitor = ["page.html"]
