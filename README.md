@@ -21,6 +21,11 @@ grs-fft (um por rádio) ─fft/afc─▶ Station Manager ─:5583 (repasse)─�
 - **A cascata** desse trecho: o tempo corre para baixo. Com o ajuste fino
   convergindo, dá para ver o sinal "entrando" na faixa verde.
 - **A banda inteira** do rádio (±120 kHz), com a janela marcada.
+
+A escala vertical se comporta como um medidor de pico: abre na hora quando o
+sinal passa do topo e fecha devagar (~5 s). O sinal chega em rajadas, e uma
+escala que seguisse a média encolheria no silêncio e cortaria o topo da
+rajada seguinte.
 - **O contexto**: satélite e downlink, nominal, Doppler, ajuste fino (e quantos
   ajustes), sintonia efetiva, e a última rajada medida (desvio, SNR, largura,
   idade).
